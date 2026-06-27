@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Pixlit — 무료 이미지 변환 및 압축 도구. HEIC를 JPG로 변환하고 PNG/JPG 이미지를 압축하세요. 브라우저에서 직접 처리되어 파일이 서버로 전송되지 않습니다." />
+  <meta property="og:title" content="Pixlit — Free Image Converter & Compressor" />
+  <meta property="og:description" content="Convert HEIC to JPG and compress images instantly. 100% free, no signup, processed in your browser." />
+  <meta property="og:type" content="website" />
+  <title>Pixlit — Free Image Converter & Compressor</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Google AdSense (replace ca-pub-XXXXXXXXXXXXXXXX with your ID after approval) -->
+  <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script> -->
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">
+      <div class="logo-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <rect x="1" y="3" width="11" height="9" rx="2" fill="white" opacity="0.95"/>
+          <rect x="6" y="7" width="11" height="9" rx="2" fill="white" opacity="0.45"/>
+          <path d="M3.5 8.5L6 11L9 7" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="logo-name">Pix<span>lit</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link active">Tools</a>
+      <a href="pages/about.html" class="nav-link">About</a>
+      <a href="pages/contact.html" class="nav-link">Contact</a>
+      <button class="nav-lang" onclick="toggleLang()" id="lang-btn">🌐 KO</button>
+    </div>
+    <button class="nav-mobile-menu" onclick="toggleMobileMenu()" aria-label="메뉴 열기">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#475569" stroke-width="1.8" stroke-linecap="round">
+        <path d="M3 6h16M3 11h16M3 16h16"/>
+      </svg>
+    </button>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-badge">
+      <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+        <circle cx="4" cy="4" r="3" fill="#2563EB" opacity="0.3"/>
+        <circle cx="4" cy="4" r="1.5" fill="#2563EB"/>
+      </svg>
+      <span data-ko="무료 · 회원가입 불필요 · 브라우저에서 처리" data-en="Free · No signup · Processed in browser">무료 · 회원가입 불필요 · 브라우저에서 처리</span>
+    </div>
+    <h1>
+      <span data-ko="이미지를 즉시<br>변환하고 압축하세요" data-en="Convert & compress<br><span class='accent'>images instantly</span>">이미지를 즉시<br><span class="accent" style="color:var(--brand)">변환하고 압축하세요</span></span>
+    </h1>
+    <p data-ko="HEIC → JPG 변환과 이미지 압축을 브라우저에서 직접 처리합니다. 파일이 서버로 전송되지 않아 완전히 안전합니다." data-en="HEIC to JPG conversion and image compression — all processed in your browser. Your files never leave your device.">
+      HEIC → JPG 변환과 이미지 압축을 브라우저에서 직접 처리합니다. 파일이 서버로 전송되지 않아 완전히 안전합니다.
+    </p>
+    <div class="hero-tags">
+      <span class="tag" style="background:#FFF7ED;color:#C2410C" data-ko="100% 무료" data-en="100% Free">100% 무료</span>
+      <span class="tag" style="background:#F0FDF4;color:#15803D" data-ko="빠른 처리" data-en="Lightning fast">빠른 처리</span>
+      <span class="tag" style="background:#EFF6FF;color:#1D4ED8" data-ko="용량 제한 없음" data-en="No file size limit">용량 제한 없음</span>
+      <span class="tag" style="background:#FDF4FF;color:#7E22CE" data-ko="개인정보 보호" data-en="Privacy first">개인정보 보호</span>
+    </div>
+  </section>
+
+  <!-- ===== STATS ===== -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">2.4M+</div>
+      <div class="stat-label" data-ko="처리된 파일" data-en="Files processed">처리된 파일</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">70%</div>
+      <div class="stat-label" data-ko="평균 용량 감소" data-en="Avg. size reduction">평균 용량 감소</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0sec</div>
+      <div class="stat-label" data-ko="서버 업로드 시간" data-en="Upload to server">서버 업로드 시간</div>
+    </div>
+  </div>
+
+  <!-- ===== AD BANNER TOP ===== -->
+  <div class="ad-banner" aria-label="Advertisement">
+    <!-- AdSense 상단 배너 728×90 -->
+    <!-- <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto"></ins> -->
+    <span style="font-size:12px;color:var(--text-muted)">Advertisement</span>
+  </div>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-container">
+    <div class="content-grid">
+
+      <!-- TOOL CARD -->
+      <div class="tool-card">
+        <div class="tab-bar" role="tablist">
+          <button class="tab active" role="tab" aria-selected="true" onclick="switchTab('heic')" id="tab-heic">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="11" height="11" rx="2"/><path d="M5 7.5l2 2 3-3"/></svg>
+            <span data-ko="HEIC → JPG 변환" data-en="HEIC → JPG">HEIC → JPG 변환</span>
+          </button>
+          <button class="tab" role="tab" aria-selected="false" onclick="switchTab('compress')" id="tab-compress">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="11" height="11" rx="2"/><path d="M7.5 5v5M5 7.5h5"/></svg>
+            <span data-ko="이미지 압축" data-en="Image compress">이미지 압축</span>
+          </button>
+        </div>
+
+        <!-- ===== HEIC TAB ===== -->
+        <div class="tool-body active" id="body-heic" role="tabpanel">
+          <div class="upload-zone" id="heic-drop" onclick="document.getElementById('heic-input').click()"
+               ondragover="handleDragOver(event,'heic-drop')" ondragleave="handleDragLeave(event,'heic-drop')" ondrop="handleDrop(event,'heic')">
+            <div class="upload-zone-icon">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#64748B" stroke-width="1.6" stroke-linecap="round">
+                <path d="M11 14V4M7 8l4-4 4 4"/>
+                <path d="M3 16v2a1 1 0 001 1h14a1 1 0 001-1v-2"/>
+              </svg>
+            </div>
+            <div class="upload-zone-title" data-ko="HEIC 파일을 여기에 끌어다 놓으세요" data-en="Drag & drop your HEIC files here">HEIC 파일을 여기에 끌어다 놓으세요</div>
+            <div class="upload-zone-sub" data-ko="또는 클릭하여 파일을 선택하세요" data-en="or click to select files from your device">또는 클릭하여 파일을 선택하세요</div>
+            <button class="upload-btn" onclick="event.stopPropagation();document.getElementById('heic-input').click()">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round"><path d="M6.5 9V2M3.5 5l3-3 3 3"/><path d="M1 10v1.5a.5.5 0 00.5.5h10a.5.5 0 00.5-.5V10"/></svg>
+              <span data-ko="파일 선택" data-en="Choose files">파일 선택</span>
+            </button>
+            <div class="upload-formats" data-ko=".HEIC .HEIF 지원 (아이폰 사진) · 여러 파일 동시 처리 가능" data-en="Supports .HEIC .HEIF (iPhone photos) · Multiple files supported">.HEIC .HEIF 지원 (아이폰 사진) · 여러 파일 동시 처리 가능</div>
+          </div>
+          <input type="file" id="heic-input" class="upload-input" accept=".heic,.heif,image/heic,image/heif" multiple onchange="handleFileSelect(event,'heic')">
+
+          <div class="batch-indicator" id="heic-batch">
+            <div class="batch-dot"></div>
+            <span id="heic-batch-text"></span>
+          </div>
+
+          <div class="file-list" id="heic-file-list"></div>
+
+          <div class="options-row">
+            <div class="option-box">
+              <div class="option-label" data-ko="출력 품질" data-en="Output quality">출력 품질</div>
+              <div class="slider-wrap">
+                <input type="range" class="slider" id="heic-quality" min="1" max="100" value="90" oninput="updateSlider('heic-quality','heic-quality-val')">
+                <div class="slider-val" id="heic-quality-val">90%</div>
+              </div>
+            </div>
+            <div class="option-box">
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="option-label" data-ko="EXIF 데이터 유지" data-en="Keep EXIF data">EXIF 데이터 유지</div>
+                  <div class="toggle-sub" data-ko="GPS, 날짜, 카메라 정보" data-en="GPS, date, camera info">GPS, 날짜, 카메라 정보</div>
+                </div>
+                <div class="toggle on" id="heic-exif-toggle" onclick="toggleSwitch('heic-exif-toggle')"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="before-after" id="heic-preview">
+            <div class="preview-box">
+              <div class="preview-label" data-ko="변환 전" data-en="Before">변환 전</div>
+              <div class="preview-thumb placeholder-before" id="heic-before-thumb">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" fill="#818CF8" opacity="0.4"/><circle cx="12" cy="13" r="3" fill="#818CF8"/><path d="M4 22l8-6 5 4 4-3 7 5" stroke="#818CF8" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <div class="preview-meta">
+                <span class="preview-size" id="heic-before-size">—</span>
+                <span class="preview-fmt">.HEIC</span>
+              </div>
+            </div>
+            <div class="preview-box">
+              <div class="preview-label" data-ko="변환 후" data-en="After">변환 후</div>
+              <div class="preview-thumb placeholder-after" id="heic-after-thumb">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" fill="#34D399" opacity="0.4"/><circle cx="12" cy="13" r="3" fill="#34D399"/><path d="M4 22l8-6 5 4 4-3 7 5" stroke="#34D399" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <div class="preview-meta">
+                <span class="preview-size" id="heic-after-size">—</span>
+                <span class="preview-fmt">.JPG</span>
+                <span class="save-badge" id="heic-save-badge" style="display:none"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="progress-wrap" id="heic-progress">
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="heic-progress-fill"></div></div>
+            <div class="progress-label" id="heic-progress-label"></div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn-primary" id="heic-convert-btn" onclick="convertHEIC()" disabled>
+              <span class="btn-icon">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round"><path d="M7.5 1v9M4 6.5l3.5 3.5 3.5-3.5"/><path d="M1 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>
+              </span>
+              <span data-ko="ZIP으로 모두 다운로드" data-en="Download all as ZIP">ZIP으로 모두 다운로드</span>
+            </button>
+            <button class="btn-secondary" id="heic-individual-btn" onclick="downloadIndividual('heic')" disabled data-ko="개별 다운로드" data-en="Download individually">개별 다운로드</button>
+          </div>
+
+          <!-- AdSense inline -->
+          <div class="ad-inline">
+            <!-- <ins class="adsbygoogle" data-ad-slot="XXXXXXXXXX"></ins> -->
+            <span style="font-size:12px;color:var(--text-muted)">Advertisement</span>
+          </div>
+        </div>
+
+        <!-- ===== COMPRESS TAB ===== -->
+        <div class="tool-body" id="body-compress" role="tabpanel">
+          <div class="upload-zone" id="compress-drop" onclick="document.getElementById('compress-input').click()"
+               ondragover="handleDragOver(event,'compress-drop')" ondragleave="handleDragLeave(event,'compress-drop')" ondrop="handleDrop(event,'compress')">
+            <div class="upload-zone-icon">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#64748B" stroke-width="1.6" stroke-linecap="round">
+                <path d="M11 14V4M7 8l4-4 4 4"/>
+                <path d="M3 16v2a1 1 0 001 1h14a1 1 0 001-1v-2"/>
+              </svg>
+            </div>
+            <div class="upload-zone-title" data-ko="PNG 또는 JPG 파일을 여기에 끌어다 놓으세요" data-en="Drag & drop your PNG or JPG files here">PNG 또는 JPG 파일을 여기에 끌어다 놓으세요</div>
+            <div class="upload-zone-sub" data-ko="또는 클릭하여 파일을 선택하세요" data-en="or click to select files from your device">또는 클릭하여 파일을 선택하세요</div>
+            <button class="upload-btn" onclick="event.stopPropagation();document.getElementById('compress-input').click()">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round"><path d="M6.5 9V2M3.5 5l3-3 3 3"/><path d="M1 10v1.5a.5.5 0 00.5.5h10a.5.5 0 00.5-.5V10"/></svg>
+              <span data-ko="파일 선택" data-en="Choose files">파일 선택</span>
+            </button>
+            <div class="upload-formats" data-ko=".PNG .JPG .JPEG .WEBP 지원 · 여러 파일 동시 처리 가능" data-en="Supports .PNG .JPG .JPEG .WEBP · Multiple files supported">.PNG .JPG .JPEG .WEBP 지원 · 여러 파일 동시 처리 가능</div>
+          </div>
+          <input type="file" id="compress-input" class="upload-input" accept="image/png,image/jpeg,image/webp" multiple onchange="handleFileSelect(event,'compress')">
+
+          <div class="batch-indicator" id="compress-batch">
+            <div class="batch-dot"></div>
+            <span id="compress-batch-text"></span>
+          </div>
+
+          <div class="file-list" id="compress-file-list"></div>
+
+          <div class="options-row">
+            <div class="option-box">
+              <div class="option-label" data-ko="압축 품질" data-en="Compression quality">압축 품질</div>
+              <div class="slider-wrap">
+                <input type="range" class="slider" id="compress-quality" min="1" max="100" value="80" oninput="updateSlider('compress-quality','compress-quality-val')">
+                <div class="slider-val" id="compress-quality-val">80%</div>
+              </div>
+            </div>
+            <div class="option-box">
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="option-label" data-ko="WebP로 변환" data-en="Convert to WebP">WebP로 변환</div>
+                  <div class="toggle-sub" data-ko="더 작은 파일, 현대 브라우저 지원" data-en="Smaller files, modern browser support">더 작은 파일, 현대 브라우저 지원</div>
+                </div>
+                <div class="toggle" id="compress-webp-toggle" onclick="toggleSwitch('compress-webp-toggle')"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="before-after" id="compress-preview">
+            <div class="preview-box">
+              <div class="preview-label" data-ko="압축 전" data-en="Before">압축 전</div>
+              <div class="preview-thumb placeholder-before" id="compress-before-thumb">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" fill="#818CF8" opacity="0.4"/><circle cx="12" cy="13" r="3" fill="#818CF8"/><path d="M4 22l8-6 5 4 4-3 7 5" stroke="#818CF8" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <div class="preview-meta">
+                <span class="preview-size" id="compress-before-size">—</span>
+                <span class="preview-fmt" id="compress-before-fmt">.PNG</span>
+              </div>
+            </div>
+            <div class="preview-box">
+              <div class="preview-label" data-ko="압축 후" data-en="After">압축 후</div>
+              <div class="preview-thumb placeholder-after" id="compress-after-thumb">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" fill="#34D399" opacity="0.4"/><circle cx="12" cy="13" r="3" fill="#34D399"/><path d="M4 22l8-6 5 4 4-3 7 5" stroke="#34D399" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </div>
+              <div class="preview-meta">
+                <span class="preview-size" id="compress-after-size">—</span>
+                <span class="preview-fmt" id="compress-after-fmt">.PNG</span>
+                <span class="save-badge" id="compress-save-badge" style="display:none"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="progress-wrap" id="compress-progress">
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="compress-progress-fill"></div></div>
+            <div class="progress-label" id="compress-progress-label"></div>
+          </div>
+
+          <div class="action-row">
+            <button class="btn-primary" id="compress-btn" onclick="compressImages()" disabled>
+              <span class="btn-icon">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round"><path d="M7.5 1v9M4 6.5l3.5 3.5 3.5-3.5"/><path d="M1 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>
+              </span>
+              <span data-ko="ZIP으로 모두 다운로드" data-en="Download all as ZIP">ZIP으로 모두 다운로드</span>
+            </button>
+            <button class="btn-secondary" id="compress-individual-btn" onclick="downloadIndividual('compress')" disabled data-ko="개별 다운로드" data-en="Download individually">개별 다운로드</button>
+          </div>
+
+          <div class="ad-inline">
+            <span style="font-size:12px;color:var(--text-muted)">Advertisement</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="ad-sidebar" aria-label="Advertisement">
+          <!-- AdSense 300×250 -->
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#CBD5E1" stroke-width="1.5"><rect x="2" y="2" width="16" height="16" rx="3"/><path d="M6 10h8M10 6v8"/></svg>
+          <span style="font-size:12px">Advertisement</span>
+          <span style="font-size:11px;color:var(--text-muted)">300×250</span>
+        </div>
+
+        <div class="how-it-works">
+          <h3 data-ko="사용 방법" data-en="How it works">사용 방법</h3>
+          <div class="step-list">
+            <div class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-text" data-ko="파일을 업로드하거나 끌어다 놓으세요" data-en="Upload or drag & drop your files">파일을 업로드하거나 끌어다 놓으세요</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-text" data-ko="품질 설정을 조정하세요" data-en="Adjust quality settings">품질 설정을 조정하세요</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-text" data-ko="변환된 파일을 다운로드하세요" data-en="Download your converted files">변환된 파일을 다운로드하세요</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ad-sidebar" style="height:180px" aria-label="Advertisement">
+          <span style="font-size:12px">Advertisement</span>
+          <span style="font-size:11px;color:var(--text-muted)">300×200</span>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <a href="index.html" class="logo" style="gap:7px">
+        <div class="logo-icon" style="width:24px;height:24px;border-radius:6px">
+          <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+            <rect x="1" y="3" width="11" height="9" rx="2" fill="white" opacity="0.95"/>
+            <rect x="6" y="7" width="11" height="9" rx="2" fill="white" opacity="0.45"/>
+          </svg>
+        </div>
+        <span class="logo-name" style="font-size:14px">Pix<span>lit</span></span>
+      </a>
+      <div class="footer-links">
+        <a href="pages/privacy.html" class="footer-link" data-ko="개인정보처리방침" data-en="Privacy policy">개인정보처리방침</a>
+        <a href="pages/terms.html" class="footer-link" data-ko="이용약관" data-en="Terms of use">이용약관</a>
+        <a href="pages/about.html" class="footer-link" data-ko="소개" data-en="About">소개</a>
+        <a href="pages/contact.html" class="footer-link" data-ko="문의" data-en="Contact">문의</a>
+      </div>
+      <div class="footer-copy">© 2025 Pixlit. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
