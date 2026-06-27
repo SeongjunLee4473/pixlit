@@ -300,10 +300,14 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: center;
   gap: 7px;
+  border: none;
   border-bottom: 2px solid transparent;
+  outline: none;
   margin-bottom: -0.5px;
   transition: color 0.15s;
   user-select: none;
+  font-family: inherit;
+  background: transparent;
 }
 
 .tab.active {
