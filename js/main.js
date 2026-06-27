@@ -403,6 +403,7 @@ function showToast(msg) {
 /* ---------- Language toggle ---------- */
 function toggleLang() {
   state.lang = state.lang === 'ko' ? 'en' : 'ko';
+  localStorage.setItem('pixlit-lang', state.lang);
   const btn = document.getElementById('lang-btn');
   btn.textContent = state.lang === 'ko' ? '🌐 KO' : '🌐 EN';
   applyLang();
@@ -410,8 +411,7 @@ function toggleLang() {
 
 function applyLang() {
   document.querySelectorAll('[data-ko]').forEach(el => {
-    const key = state.lang === 'ko' ? 'data-ko' : 'data-en';
-    const val = el.getAttribute(key);
+    const val = el.getAttribute('data-' + state.lang);
     if (val !== null) el.innerHTML = val;
   });
 }
@@ -462,6 +462,10 @@ function escHtml(str) {
 
 /* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', () => {
+  state.lang = localStorage.getItem('pixlit-lang') || 'ko';
+  const btn = document.getElementById('lang-btn');
+  if (btn) btn.textContent = state.lang === 'ko' ? '🌐 KO' : '🌐 EN';
+  applyLang();
   updateSliderTrack('heic-quality', 90);
   updateSliderTrack('compress-quality', 80);
 });
