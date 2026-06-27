@@ -104,6 +104,7 @@
     function submitContact() {
       const name    = document.getElementById('contact-name').value.trim();
       const email   = document.getElementById('contact-email').value.trim();
+      const subject = document.getElementById('contact-subject').value.trim();
       const message = document.getElementById('contact-message').value.trim();
       const l = _lang.current;
 
@@ -114,19 +115,30 @@
         return;
       }
 
-      // Formspree integration — replace YOUR_FORM_ID after setup
-      // fetch('https://formspree.io/f/YOUR_FORM_ID', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     name, email,
-      //     subject: document.getElementById('contact-subject').value,
-      //     message
-      //   })
-      // });
+      const btn = document.querySelector('#contact-form button');
+      btn.disabled = true;
+      document.getElementById('submit-label').textContent = l === 'ko' ? '전송 중...' : 'Sending...';
 
-      document.getElementById('contact-success').style.display = 'block';
-      document.getElementById('contact-form').querySelectorAll('input,textarea,button').forEach(el => el.disabled = true);
+      fetch('https://formspree.io/f/xjgqrgpy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ name, email, subject, message })
+      })
+      .then(res => {
+        if (res.ok) {
+          document.getElementById('contact-success').style.display = 'block';
+          document.getElementById('contact-form').querySelectorAll('input,textarea,button').forEach(el => el.disabled = true);
+        } else {
+          btn.disabled = false;
+          document.getElementById('submit-label').textContent = l === 'ko' ? '보내기' : 'Send';
+          alert(l === 'ko' ? '전송에 실패했습니다. 다시 시도해 주세요.' : 'Failed to send. Please try again.');
+        }
+      })
+      .catch(() => {
+        btn.disabled = false;
+        document.getElementById('submit-label').textContent = l === 'ko' ? '보내기' : 'Send';
+        alert(l === 'ko' ? '네트워크 오류가 발생했습니다. 다시 시도해 주세요.' : 'Network error. Please try again.');
+      });
     }
 
     document.addEventListener('DOMContentLoaded', applyLang);
