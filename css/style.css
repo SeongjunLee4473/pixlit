@@ -1062,6 +1062,28 @@ a:hover { text-decoration: underline; }
   .footer { padding: 20px 16px; }
 
   .footer-inner { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+  /* 모바일 전용 인라인 광고 */
+  .ad-mobile {
+    display: block;
+    background: var(--surface-1);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    color: var(--text-muted);
+    font-size: 12px;
+    margin-top: 16px;
+  }
+}
+
+/* 데스크탑에서는 모바일 광고 숨김 */
+.ad-mobile {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
