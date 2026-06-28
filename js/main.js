@@ -222,7 +222,7 @@ function updatePreviewPlaceholder(type) {
   if (!f) {
     beforeSize.textContent = '—';
     afterSize.textContent  = '—';
-    badge.style.display    = 'none';
+    if (badge) badge.style.display = 'none';
     beforeThumb.innerHTML  = ICON_BEFORE;
     beforeThumb.className  = 'preview-thumb placeholder-before';
     return;
@@ -230,7 +230,7 @@ function updatePreviewPlaceholder(type) {
 
   beforeSize.textContent = formatSize(f.size);
   afterSize.textContent  = '—';
-  badge.style.display    = 'none';
+  if (badge) badge.style.display = 'none';
 
   if (type === 'compress') {
     document.getElementById('compress-before-fmt').textContent =
