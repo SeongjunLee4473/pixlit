@@ -4,9 +4,6 @@
 
 'use strict';
 
-/* ---------- Background removal (ESM import) ---------- */
-import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser/index.mjs';
-
 /* ---------- State ---------- */
 const state = {
   heic:     { files: [], results: [] },
@@ -141,10 +138,6 @@ function resetTool(type) {
   document.getElementById(type + '-progress').classList.remove('visible');
   updateButtons(type, false);
   updatePreviewPlaceholder(type);
-  if (type === 'bgremove') {
-    const notice = document.getElementById('bgremove-notice');
-    if (notice) notice.style.display = '';
-  }
 }
 
 /* ---------- Batch indicator ---------- */
@@ -289,51 +282,49 @@ async function removeBg() {
   btn.querySelector('span:not(.btn-icon)').textContent =
     state.lang === 'ko' ? 'AI 처리 중...' : 'Processing...';
 
-  const progressLabel = document.getElementById('bgremove-progress-label');
+  const progressWrap  = document.getElementById('bgremove-progress');
   const progressFill  = document.getElementById('bgremove-progress-fill');
-  document.getElementById('bgremove-progress').classList.add('visible');
+  const progressLabel = document.getElementById('bgremove-progress-label');
+  progressWrap.classList.add('visible');
   progressFill.style.width = '0%';
   progressLabel.textContent = state.lang === 'ko' ? '모델 준비 중...' : 'Preparing model...';
 
   state.bgremove.results = [];
 
   try {
-    let lastProgress = 0;
+    const bgRemoveFn = window.BackgroundRemoval
+      ? window.BackgroundRemoval.removeBackground
+      : null;
 
-    const blob = await removeBackground(f, {
+    if (!bgRemoveFn) {
+      throw new Error('Background removal library not loaded');
+    }
+
+    let lastPct = 0;
+    const blob = await bgRemoveFn(f, {
       progress: (key, current, total) => {
-        if (total > 0) {
-          const pct = Math.round((current / total) * 100);
-          if (pct !== lastProgress) {
-            lastProgress = pct;
-            progressFill.style.width = pct + '%';
-            if (key === 'fetch:model') {
-              progressLabel.textContent = state.lang === 'ko'
-                ? `모델 다운로드 중... ${pct}%`
-                : `Downloading model... ${pct}%`;
-            } else {
-              progressLabel.textContent = state.lang === 'ko'
-                ? `배경 제거 중... ${pct}%`
-                : `Removing background... ${pct}%`;
-            }
-          }
-        }
+        if (!total) return;
+        const pct = Math.round((current / total) * 100);
+        if (pct === lastPct) return;
+        lastPct = pct;
+        progressFill.style.width = pct + '%';
+        progressLabel.textContent = key === 'fetch:model'
+          ? (state.lang === 'ko' ? `모델 다운로드 중... ${pct}%` : `Downloading model... ${pct}%`)
+          : (state.lang === 'ko' ? `배경 제거 중... ${pct}%` : `Removing background... ${pct}%`);
       }
     });
 
     const outName = f.name.replace(/\.[^.]+$/, '.png');
     state.bgremove.results.push({ name: outName, blob });
 
-    // 결과 미리보기
     const afterThumb = document.getElementById('bgremove-after-thumb');
     const url = URL.createObjectURL(blob);
-    afterThumb.innerHTML = `<img src="${url}" alt="result preview" style="background:repeating-conic-gradient(#d1d5db 0% 25%, #fff 0% 50%) 0 0 / 12px 12px">`;
-    afterThumb.className = 'preview-thumb';
+    afterThumb.innerHTML = `<img src="${url}" alt="result preview">`;
+    afterThumb.className = 'preview-thumb bgremove-checker';
     document.getElementById('bgremove-after-size').textContent = formatSize(blob.size);
 
     progressFill.style.width = '100%';
     progressLabel.textContent = state.lang === 'ko' ? '완료!' : 'Done!';
-
     updateButtons('bgremove', true);
     showToast(state.lang === 'ko' ? '배경 제거 완료!' : 'Background removed!');
 
@@ -445,7 +436,6 @@ async function downloadZip(type) {
 function downloadIndividual(type) {
   const results = state[type].results;
   if (!results.length) return;
-  // bgremove는 항상 단일 파일
   if (type === 'bgremove') {
     downloadBlob(results[0].blob, results[0].name);
     return;
@@ -564,20 +554,3 @@ document.addEventListener('DOMContentLoaded', () => {
   updateSliderTrack('heic-quality', 90);
   updateSliderTrack('compress-quality', 80);
 });
-
-/* ---------- Expose to global (required for ESM module) ---------- */
-window.switchTab         = switchTab;
-window.handleDragOver    = handleDragOver;
-window.handleDragLeave   = handleDragLeave;
-window.handleDrop        = handleDrop;
-window.handleFileSelect  = handleFileSelect;
-window.removeFile        = removeFile;
-window.toggleSwitch      = toggleSwitch;
-window.updateSlider      = updateSlider;
-window.convertHEIC       = convertHEIC;
-window.compressImages    = compressImages;
-window.removeBg          = removeBg;
-window.downloadZip       = downloadZip;
-window.downloadIndividual = downloadIndividual;
-window.toggleLang        = toggleLang;
-window.toggleMobileMenu  = toggleMobileMenu;
