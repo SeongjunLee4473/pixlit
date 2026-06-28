@@ -552,31 +552,73 @@ async function removeBg() {
   const progressFill  = document.getElementById('bgremove-progress-fill');
   const progressLabel = document.getElementById('bgremove-progress-label');
   progressWrap.classList.add('visible');
-  progressFill.style.width = '0%';
-  progressLabel.textContent = state.lang === 'ko' ? '모델 준비 중...' : 'Preparing model...';
+  progressFill.style.width = '5%';
+  progressLabel.textContent = state.lang === 'ko' ? '모델 로딩 중...' : 'Loading model...';
 
   state.bgremove.results = [];
 
   try {
-    const bgRemoveFn = window.BackgroundRemoval
-      ? window.BackgroundRemoval.removeBackground
-      : null;
-    if (!bgRemoveFn) throw new Error('Library not loaded');
+    if (!window._bgRemoveReady) throw new Error('Library not initialized');
 
-    let lastPct = 0;
-    const blob = await bgRemoveFn(f, {
-      progress: (key, current, total) => {
-        if (!total) return;
-        const pct = Math.round((current / total) * 100);
-        if (pct === lastPct) return;
-        lastPct = pct;
-        progressFill.style.width = pct + '%';
-        progressLabel.textContent = key === 'fetch:model'
-          ? (state.lang === 'ko' ? `모델 다운로드 중... ${pct}%` : `Downloading model... ${pct}%`)
-          : (state.lang === 'ko' ? `배경 제거 중... ${pct}%`     : `Removing background... ${pct}%`);
-      }
+    progressFill.style.width = '20%';
+    progressLabel.textContent = state.lang === 'ko' ? '모델 로딩 중... (첫 실행 시 수십 초 소요)' : 'Loading model... (may take a moment on first run)';
+
+    let bgCtx;
+    try {
+      bgCtx = await window._bgRemoveReady;
+    } catch (e) {
+      throw new Error('Model load failed: ' + e.message);
+    }
+    const { model, processor, RawImage } = bgCtx;
+
+    progressFill.style.width = '40%';
+    progressLabel.textContent = state.lang === 'ko' ? '이미지 분석 중...' : 'Analyzing image...';
+
+    // File → RawImage
+    const url  = URL.createObjectURL(f);
+    const img  = await RawImage.fromURL(url);
+    URL.revokeObjectURL(url);
+
+    progressFill.style.width = '60%';
+    progressLabel.textContent = state.lang === 'ko' ? '배경 제거 중...' : 'Removing background...';
+
+    // 모델 실행
+    const { pixel_values } = await processor(img);
+    const { output }       = await model({ input: pixel_values });
+
+    progressFill.style.width = '85%';
+    progressLabel.textContent = state.lang === 'ko' ? '마무리 중...' : 'Finalizing...';
+
+    // 마스크 → Canvas 합성
+    const mask    = await RawImage.fromTensor(output[0].mul(255).to('uint8')).resize(img.width, img.height);
+    const canvas  = document.createElement('canvas');
+    canvas.width  = img.width;
+    canvas.height = img.height;
+    const ctx     = canvas.getContext('2d');
+
+    // 원본 이미지 그리기
+    const srcCanvas  = document.createElement('canvas');
+    srcCanvas.width  = img.width;
+    srcCanvas.height = img.height;
+    const srcCtx     = srcCanvas.getContext('2d');
+    const imgEl      = new Image();
+    await new Promise(res => {
+      const blobUrl = URL.createObjectURL(f);
+      imgEl.onload = () => { srcCtx.drawImage(imgEl, 0, 0); URL.revokeObjectURL(blobUrl); res(); };
+      imgEl.src    = blobUrl;
     });
+    ctx.drawImage(srcCanvas, 0, 0);
 
+    // 알파 채널 적용
+    const imgData  = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const maskData = mask.data;
+    for (let i = 0; i < maskData.length; i++) {
+      imgData.data[i * 4 + 3] = maskData[i];
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    // Canvas → Blob
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
     const outName = f.name.replace(/\.[^.]+$/, '.png');
     state.bgremove.results.push({ name: outName, blob });
 
@@ -597,10 +639,11 @@ async function removeBg() {
     console.error('BG remove error:', err);
     showToast(state.lang === 'ko' ? '배경 제거 실패. 다시 시도해 주세요.' : 'Failed. Please try again.');
     progressLabel.textContent = state.lang === 'ko' ? '처리 실패' : 'Failed';
-    btn.disabled = false;
-    btn.querySelector('span:not(.btn-icon)').textContent =
-      state.lang === 'ko' ? '배경 제거 시작' : 'Remove background';
   }
+
+  btn.disabled = false;
+  btn.querySelector('span:not(.btn-icon)').textContent =
+    state.lang === 'ko' ? '배경 제거 시작' : 'Remove background';
 }
 
 function resetBgremove() {

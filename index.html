@@ -519,7 +519,32 @@
   <!-- SCRIPTS -->
   <script src="https://cdn.jsdelivr.net/npm/heic-to@1.5.2/dist/iife/heic-to.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser/index.umd.js"></script>
   <script src="js/main.js"></script>
+  <script type="module">
+    import { AutoModel, AutoProcessor, RawImage, env }
+      from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.2/dist/transformers.min.js';
+
+    env.allowLocalModels  = false;
+    env.allowRemoteModels = true;
+    env.backends.onnx.wasm.wasmPaths =
+      'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.2/dist/';
+
+    window._bgRemoveReady = (async () => {
+      try {
+        const [model, processor] = await Promise.all([
+          AutoModel.from_pretrained('briaai/RMBG-1.4', {
+            config: { model_type: 'custom' },
+            dtype: 'fp32',
+          }),
+          AutoProcessor.from_pretrained('briaai/RMBG-1.4'),
+        ]);
+        console.log('[Pixlit] BG removal model loaded');
+        return { model, processor, RawImage };
+      } catch (e) {
+        console.error('[Pixlit] BG removal model load failed:', e);
+        throw e;
+      }
+    })();
+  </script>
 </body>
 </html>
