@@ -166,10 +166,19 @@ function updatePreviewPlaceholder(type) {
   const badge = document.getElementById(type + '-save-badge');
   const afterSize = document.getElementById(type + '-after-size');
 
+  // 변환 후 썸네일 초기화
+  const afterThumb = document.getElementById(type + '-after-thumb');
+  afterThumb.innerHTML = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" fill="#34D399" opacity="0.4"/><circle cx="12" cy="13" r="3" fill="#34D399"/><path d="M4 22l8-6 5 4 4-3 7 5" stroke="#34D399" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+  afterThumb.className = 'preview-thumb placeholder-after';
+
   if (!f) {
     beforeSize.textContent = '—';
     afterSize.textContent = '—';
     badge.style.display = 'none';
+    // 변환 전 썸네일도 초기화
+    const beforeThumb = document.getElementById(type + '-before-thumb');
+    beforeThumb.innerHTML = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" fill="#818CF8" opacity="0.4"/><circle cx="12" cy="13" r="3" fill="#818CF8"/><path d="M4 22l8-6 5 4 4-3 7 5" stroke="#818CF8" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+    beforeThumb.className = 'preview-thumb placeholder-before';
     return;
   }
 
@@ -182,14 +191,30 @@ function updatePreviewPlaceholder(type) {
     document.getElementById('compress-before-fmt').textContent = '.' + ext;
   }
 
-  // Show actual image thumbnail
-  const reader = new FileReader();
-  reader.onload = e => {
-    const thumb = document.getElementById(type + '-before-thumb');
-    thumb.innerHTML = `<img src="${e.target.result}" alt="preview">`;
+  const thumb = document.getElementById(type + '-before-thumb');
+
+  if (type === 'heic') {
+    // HEIC는 브라우저가 직접 렌더링하지 못하므로 heic2any로 썸네일 변환 후 표시
+    thumb.innerHTML = `<span style="font-size:12px;color:#94A3B8">${state.lang === 'ko' ? '미리보기 생성 중...' : 'Generating preview...'}</span>`;
+    thumb.className = 'preview-thumb placeholder-before';
+    heic2any({ blob: f, toType: 'image/jpeg', quality: 0.3 })
+      .then(result => {
+        const previewBlob = Array.isArray(result) ? result[0] : result;
+        const url = URL.createObjectURL(previewBlob);
+        thumb.innerHTML = `<img src="${url}" alt="preview">`;
+        thumb.className = 'preview-thumb';
+      })
+      .catch(() => {
+        // 미리보기 실패 시 아이콘 fallback
+        thumb.innerHTML = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" fill="#818CF8" opacity="0.4"/><circle cx="12" cy="13" r="3" fill="#818CF8"/><path d="M4 22l8-6 5 4 4-3 7 5" stroke="#818CF8" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+        thumb.className = 'preview-thumb placeholder-before';
+      });
+  } else {
+    // PNG/JPG/WEBP는 브라우저가 직접 렌더링 가능
+    const url = URL.createObjectURL(f);
+    thumb.innerHTML = `<img src="${url}" alt="preview">`;
     thumb.className = 'preview-thumb';
-  };
-  reader.readAsDataURL(f);
+  }
 }
 
 function updateAfterPreview(type, resultBlob, savedPct) {
@@ -197,14 +222,33 @@ function updateAfterPreview(type, resultBlob, savedPct) {
   const afterSize  = document.getElementById(type + '-after-size');
   const badge      = document.getElementById(type + '-save-badge');
 
+  // 기존 blob URL 해제 (메모리 누수 방지)
+  const oldImg = afterThumb.querySelector('img');
+  if (oldImg && oldImg.src.startsWith('blob:')) {
+    URL.revokeObjectURL(oldImg.src);
+  }
+
   const url = URL.createObjectURL(resultBlob);
-  afterThumb.innerHTML = `<img src="${url}" alt="result preview">`;
-  afterThumb.className = 'preview-thumb';
+  const img = new Image();
+  img.alt = 'result preview';
+  img.onload = () => {
+    afterThumb.innerHTML = '';
+    afterThumb.appendChild(img);
+    afterThumb.className = 'preview-thumb';
+  };
+  img.onerror = () => {
+    // 이미지 로드 실패 시 fallback
+    afterThumb.className = 'preview-thumb placeholder-after';
+  };
+  img.src = url;
+
   afterSize.textContent = formatSize(resultBlob.size);
 
   if (savedPct > 0) {
     badge.textContent = `-${savedPct}%`;
     badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
   }
 }
 
