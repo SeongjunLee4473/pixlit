@@ -154,9 +154,15 @@ function updateBatchIndicator(type) {
 /* ---------- Buttons ---------- */
 function updateButtons(type, done) {
   const hasFiles = state[type].files.length > 0;
-  const btnId = type === 'heic' ? 'heic-convert-btn' : 'compress-btn';
+  const btnId    = type === 'heic' ? 'heic-convert-btn' : 'compress-btn';
+
+  // 변환/압축 시작 버튼
   document.getElementById(btnId).disabled = !hasFiles;
-  document.getElementById(type + '-individual-btn').disabled = !done;
+
+  // 완료 전: 변환 버튼 행 표시, 다운로드 행 숨김
+  // 완료 후: 변환 버튼 행 숨김, 다운로드 행 표시
+  document.getElementById(type + '-action-convert').style.display  = done ? 'none' : '';
+  document.getElementById(type + '-action-download').style.display = done ? ''     : 'none';
 }
 
 /* ---------- Preview helpers ---------- */
@@ -280,13 +286,11 @@ async function convertHEIC() {
     setFileStatus('heic', i, state.lang === 'ko' ? '변환 중...' : 'converting...', '');
 
     try {
-      const resultBlob = await heic2any({
+      const blob = await HeicTo({
         blob: f,
-        toType: 'image/jpeg',
+        type: 'image/jpeg',
         quality: quality
       });
-
-      const blob = Array.isArray(resultBlob) ? resultBlob[0] : resultBlob;
       const outName = f.name.replace(/\.(heic|heif)$/i, '.jpg');
       state.heic.results.push({ name: outName, blob });
 
@@ -310,9 +314,8 @@ async function convertHEIC() {
   }
 
   btn.disabled = false;
-  const zipLabel = state.lang === 'ko' ? 'ZIP으로 모두 다운로드' : 'Download all as ZIP';
-  btn.querySelector('span:not(.btn-icon)').textContent = zipLabel;
-  btn.onclick = () => downloadZip('heic');
+  btn.querySelector('span:not(.btn-icon)').textContent =
+    state.lang === 'ko' ? '변환 시작' : 'Convert now';
 
   updateButtons('heic', true);
   showToast(state.lang === 'ko' ? `${state.heic.results.length}개 파일 변환 완료!` : `${state.heic.results.length} file(s) converted!`);
@@ -363,9 +366,8 @@ async function compressImages() {
   }
 
   btn.disabled = false;
-  const zipLabel = state.lang === 'ko' ? 'ZIP으로 모두 다운로드' : 'Download all as ZIP';
-  btn.querySelector('span:not(.btn-icon)').textContent = zipLabel;
-  btn.onclick = () => downloadZip('compress');
+  btn.querySelector('span:not(.btn-icon)').textContent =
+    state.lang === 'ko' ? '압축 시작' : 'Compress now';
 
   updateButtons('compress', true);
   showToast(state.lang === 'ko' ? `${state.compress.results.length}개 파일 압축 완료!` : `${state.compress.results.length} file(s) compressed!`);

@@ -745,6 +745,20 @@ a:hover { text-decoration: underline; }
 .btn-secondary:hover { background: var(--surface-2); color: var(--text); }
 .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* 변환/압축 시작 버튼 — 조금 더 두드러지게 */
+.btn-convert {
+  font-size: 15px;
+  padding: 13px 20px;
+  letter-spacing: 0.01em;
+}
+
+/* 다운로드 행 — 살짝 구분감 */
+.action-row-done {
+  margin-top: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
 /* =============================================
    PROGRESS BAR
    ============================================= */
