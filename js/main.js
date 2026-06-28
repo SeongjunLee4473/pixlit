@@ -12,6 +12,47 @@ const state = {
   lang: 'ko'
 };
 
+/* ---------- Tab content data ---------- */
+const TAB_CONTENT = {
+  heic: {
+    badge:  { ko: '무료 · 회원가입 불필요 · 브라우저에서 처리', en: 'Free · No signup · Processed in browser' },
+    title:  { ko: '이미지를 즉시<br><span style="color:var(--brand)">변환하고 압축하세요</span>', en: 'Convert & compress<br><span style="color:var(--brand)">images instantly</span>' },
+    desc:   { ko: 'HEIC → JPG 변환을 브라우저에서 직접 처리합니다.<br>파일이 서버로 전송되지 않아 완전히 안전합니다.', en: 'Convert HEIC photos to JPG instantly in your browser. Your files never leave your device.' },
+    tags:   { ko: ['100% 무료', '빠른 처리', '용량 제한 없음', '개인정보 보호'], en: ['100% Free', 'Lightning fast', 'No size limit', 'Privacy first'] },
+    step1:  { ko: '파일을 올리거나 끌어다 놓으세요', en: 'Upload or drag & drop' },
+    step2:  { ko: '출력 품질을 조정하세요', en: 'Adjust output quality' },
+    step3:  { ko: '변환된 JPG를 다운로드하세요', en: 'Download converted JPG' },
+    sTitle: { ko: '사용 방법', en: 'How it works' },
+  },
+  compress: {
+    badge:  { ko: '무료 · 회원가입 불필요 · 브라우저에서 처리', en: 'Free · No signup · Processed in browser' },
+    title:  { ko: '이미지를 즉시<br><span style="color:var(--brand)">압축하세요</span>', en: 'Compress images<br><span style="color:var(--brand)">instantly</span>' },
+    desc:   { ko: 'PNG · JPG · WEBP를 브라우저에서 직접 압축합니다.<br>파일이 서버로 전송되지 않아 완전히 안전합니다.', en: 'Compress PNG, JPG and WEBP files right in your browser. Your files never leave your device.' },
+    tags:   { ko: ['100% 무료', '용량 절감', '화질 유지', '개인정보 보호'], en: ['100% Free', 'Smaller files', 'Great quality', 'Privacy first'] },
+    step1:  { ko: '파일을 올리거나 끌어다 놓으세요', en: 'Upload or drag & drop' },
+    step2:  { ko: '압축 품질을 조정하세요', en: 'Adjust compression level' },
+    step3:  { ko: '압축된 파일을 다운로드하세요', en: 'Download compressed file' },
+    sTitle: { ko: '사용 방법', en: 'How it works' },
+  },
+  bgremove: {
+    badge:  { ko: '무료 · AI 기반 · 브라우저에서 처리', en: 'Free · AI-powered · Processed in browser' },
+    title:  { ko: '배경을 깔끔하게<br><span style="color:var(--brand)">제거하세요</span>', en: 'Remove image<br><span style="color:var(--brand)">backgrounds</span>' },
+    desc:   { ko: 'AI가 배경을 자동으로 인식하고 제거합니다.<br>결과물은 투명 PNG로 저장됩니다.', en: 'AI automatically detects and removes backgrounds. Output is saved as a transparent PNG.' },
+    tags:   { ko: ['100% 무료', 'AI 자동 인식', '투명 PNG 출력', '개인정보 보호'], en: ['100% Free', 'AI-powered', 'Transparent PNG', 'Privacy first'] },
+    step1:  { ko: '이미지를 올리거나 끌어다 놓으세요', en: 'Upload or drag & drop' },
+    step2:  { ko: '배경 제거 시작을 누르세요', en: 'Click Remove background' },
+    step3:  { ko: '투명 PNG를 다운로드하세요', en: 'Download transparent PNG' },
+    sTitle: { ko: '사용 방법', en: 'How it works' },
+  },
+};
+
+const TAG_STYLES = [
+  'background:#FFF7ED;color:#C2410C',
+  'background:#F0FDF4;color:#15803D',
+  'background:#EFF6FF;color:#1D4ED8',
+  'background:#FDF4FF;color:#7E22CE',
+];
+
 /* ---------- Tab switching ---------- */
 function switchTab(tab) {
   ['heic', 'compress', 'bgremove'].forEach(t => {
@@ -19,6 +60,7 @@ function switchTab(tab) {
     document.getElementById('tab-' + t).setAttribute('aria-selected', t === tab);
     document.getElementById('body-' + t).classList.toggle('active', t === tab);
   });
+  updateHeroContent(tab);
 }
 
 /* ---------- Slider ---------- */
@@ -491,6 +533,11 @@ function applyLang() {
     const val = el.getAttribute('data-' + state.lang);
     if (val !== null) el.innerHTML = val;
   });
+  // 현재 활성 탭 기준으로 hero/사이드바 업데이트
+  const activeTab = ['heic', 'compress', 'bgremove'].find(t =>
+    document.getElementById('tab-' + t).classList.contains('active')
+  ) || 'heic';
+  updateHeroContent(activeTab);
 }
 
 /* ---------- Mobile menu ---------- */
@@ -650,11 +697,54 @@ function resetBgremove() {
   resetTool('bgremove');
 }
 
+/* ---------- Hero / Sidebar content update ---------- */
+function updateHeroContent(tab) {
+  const c   = TAB_CONTENT[tab];
+  const l   = state.lang;
+  const els = ['hero-badge-text', 'hero-title', 'hero-desc', 'hero-tags',
+                'sidebar-title', 'sidebar-step1', 'sidebar-step2', 'sidebar-step3'];
+
+  // fade out
+  const fadeTargets = [
+    document.querySelector('.hero'),
+    document.querySelector('.how-it-works'),
+  ].filter(Boolean);
+  fadeTargets.forEach(el => { el.style.transition = 'opacity 0.18s'; el.style.opacity = '0'; });
+
+  setTimeout(() => {
+    // 배지
+    document.getElementById('hero-badge-text').textContent = c.badge[l];
+    // 제목
+    document.getElementById('hero-title').innerHTML = c.title[l];
+    // 설명
+    document.getElementById('hero-desc').innerHTML = c.desc[l];
+    // 태그
+    const tagsEl = document.getElementById('hero-tags');
+    tagsEl.innerHTML = '';
+    c.tags[l].forEach((txt, i) => {
+      const span = document.createElement('span');
+      span.className = 'tag';
+      span.style.cssText = TAG_STYLES[i];
+      span.textContent = txt;
+      tagsEl.appendChild(span);
+    });
+    // 사이드바
+    document.getElementById('sidebar-title').textContent  = c.sTitle[l];
+    document.getElementById('sidebar-step1').textContent  = c.step1[l];
+    document.getElementById('sidebar-step2').textContent  = c.step2[l];
+    document.getElementById('sidebar-step3').textContent  = c.step3[l];
+
+    // fade in
+    fadeTargets.forEach(el => { el.style.opacity = '1'; });
+  }, 180);
+}
+
 /* ---------- Init ---------- */
 document.addEventListener('DOMContentLoaded', () => {
   state.lang = localStorage.getItem('pixlit-lang') || 'ko';
   const btn = document.getElementById('lang-btn');
   if (btn) btn.textContent = state.lang === 'ko' ? '🌐 KO' : '🌐 EN';
+  updateHeroContent('heic');
   applyLang();
   updateSliderTrack('heic-quality', 90);
   updateSliderTrack('compress-quality', 80);
