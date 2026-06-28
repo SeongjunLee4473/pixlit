@@ -222,22 +222,18 @@ function updatePreviewPlaceholder(type) {
   }
 
   if (type === 'heic') {
-    // HEIC는 브라우저 직접 렌더링 불가 → heic2any로 저품질 JPEG 변환 후 표시
-    beforeThumb.innerHTML = `<span style="font-size:11px;color:#94A3B8;padding:4px;">${state.lang === 'ko' ? '미리보기 생성 중...' : 'Loading preview...'}</span>`;
+    // HEIC는 브라우저 직접 렌더링 불가
+    // 변환 전은 HEIC 파일 아이콘으로 표시, 변환 완료 후 결과 JPG를 미리보기로 표시
+    beforeThumb.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect x="4" y="2" width="18" height="24" rx="3" fill="#818CF8" opacity="0.5"/>
+          <rect x="10" y="8" width="15" height="20" rx="2" fill="#818CF8" opacity="0.25"/>
+          <text x="6" y="22" font-size="7" font-weight="800" fill="#4F46E5" font-family="monospace">HEIC</text>
+        </svg>
+        <span style="font-size:11px;font-weight:600;color:#64748B;letter-spacing:0.3px;">HEIC</span>
+      </div>`;
     beforeThumb.className = 'preview-thumb placeholder-before';
-
-    heic2any({ blob: f, toType: 'image/jpeg', quality: 0.3 })
-      .then(result => {
-        const previewBlob = Array.isArray(result) ? result[0] : result;
-        return blobToDataUrl(previewBlob);
-      })
-      .then(dataUrl => {
-        setThumbImage(beforeThumb, dataUrl, 'placeholder-before');
-      })
-      .catch(() => {
-        beforeThumb.innerHTML = ICON_BEFORE;
-        beforeThumb.className = 'preview-thumb placeholder-before';
-      });
   } else {
     // PNG/JPG/WEBP는 FileReader로 직접 읽기
     blobToDataUrl(f).then(dataUrl => {
@@ -296,7 +292,12 @@ async function convertHEIC() {
 
       if (i === 0) {
         const pct = Math.round((1 - blob.size / f.size) * 100);
+        // 변환 후 썸네일 표시
         updateAfterPreview('heic', blob, pct > 0 ? pct : 0);
+        // 변환 전 썸네일도 JPG로 업데이트 (HEIC는 변환 전엔 직접 렌더링 불가)
+        blobToDataUrl(blob).then(dataUrl => {
+          setThumbImage(document.getElementById('heic-before-thumb'), dataUrl, 'placeholder-before');
+        });
       }
 
       setFileStatus('heic', i, state.lang === 'ko' ? '완료' : 'done', 'done');
