@@ -194,7 +194,21 @@ function updatePreviewPlaceholder(type) {
     document.getElementById('bgremove-before-fmt').textContent = '.' + ext;
   }
 
-  // Show actual image thumbnail
+  // HEIC/HEIF는 브라우저가 직접 렌더링 불가 — 파일명만 표시
+  const ext = f.name.split('.').pop().toLowerCase();
+  if (ext === 'heic' || ext === 'heif') {
+    const thumb = document.getElementById(type + '-before-thumb');
+    thumb.innerHTML = `
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect x="4" y="6" width="24" height="20" rx="3" fill="#818CF8" opacity="0.4"/>
+        <circle cx="12" cy="13" r="3" fill="#818CF8"/>
+        <path d="M4 22l8-6 5 4 4-3 7 5" stroke="#818CF8" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>`;
+    thumb.className = 'preview-thumb placeholder-before';
+    return;
+  }
+
+  // PNG / JPG / WEBP — FileReader로 미리보기
   const reader = new FileReader();
   reader.onload = e => {
     const thumb = document.getElementById(type + '-before-thumb');
@@ -296,9 +310,7 @@ async function removeBg() {
       ? window.BackgroundRemoval.removeBackground
       : null;
 
-    if (!bgRemoveFn) {
-      throw new Error('Background removal library not loaded');
-    }
+    if (!bgRemoveFn) throw new Error('Background removal library not loaded');
 
     let lastPct = 0;
     const blob = await bgRemoveFn(f, {
