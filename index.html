@@ -191,14 +191,25 @@
             <div class="progress-label" id="heic-progress-label"></div>
           </div>
 
-          <div class="action-row">
-            <button class="btn-primary" id="heic-convert-btn" onclick="convertHEIC()" disabled>
+          <!-- 변환 시작 버튼 (변환 전에만 표시) -->
+          <div class="action-row" id="heic-action-convert">
+            <button class="btn-primary btn-convert" id="heic-convert-btn" onclick="convertHEIC()" disabled>
+              <span class="btn-icon">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round"><path d="M3 7.5h9M8.5 4l3.5 3.5L8.5 11"/></svg>
+              </span>
+              <span data-ko="변환 시작" data-en="Convert now">변환 시작</span>
+            </button>
+          </div>
+
+          <!-- 다운로드 버튼들 (변환 완료 후에만 표시) -->
+          <div class="action-row action-row-done" id="heic-action-download" style="display:none;">
+            <button class="btn-primary" id="heic-zip-btn" onclick="downloadZip('heic')">
               <span class="btn-icon">
                 <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round"><path d="M7.5 1v9M4 6.5l3.5 3.5 3.5-3.5"/><path d="M1 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>
               </span>
               <span data-ko="ZIP으로 모두 다운로드" data-en="Download all as ZIP">ZIP으로 모두 다운로드</span>
             </button>
-            <button class="btn-secondary" id="heic-individual-btn" onclick="downloadIndividual('heic')" disabled data-ko="개별 다운로드" data-en="Download individually">개별 다운로드</button>
+            <button class="btn-secondary" id="heic-individual-btn" onclick="downloadIndividual('heic')" data-ko="개별 다운로드" data-en="Download individually">개별 다운로드</button>
           </div>
 
           <!-- AdSense inline -->
@@ -297,14 +308,25 @@
             <div class="progress-label" id="compress-progress-label"></div>
           </div>
 
-          <div class="action-row">
-            <button class="btn-primary" id="compress-btn" onclick="compressImages()" disabled>
+          <!-- 압축 시작 버튼 (압축 전에만 표시) -->
+          <div class="action-row" id="compress-action-convert">
+            <button class="btn-primary btn-convert" id="compress-btn" onclick="compressImages()" disabled>
+              <span class="btn-icon">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round"><path d="M3 7.5h9M8.5 4l3.5 3.5L8.5 11"/></svg>
+              </span>
+              <span data-ko="압축 시작" data-en="Compress now">압축 시작</span>
+            </button>
+          </div>
+
+          <!-- 다운로드 버튼들 (압축 완료 후에만 표시) -->
+          <div class="action-row action-row-done" id="compress-action-download" style="display:none;">
+            <button class="btn-primary" id="compress-zip-btn" onclick="downloadZip('compress')">
               <span class="btn-icon">
                 <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round"><path d="M7.5 1v9M4 6.5l3.5 3.5 3.5-3.5"/><path d="M1 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>
               </span>
               <span data-ko="ZIP으로 모두 다운로드" data-en="Download all as ZIP">ZIP으로 모두 다운로드</span>
             </button>
-            <button class="btn-secondary" id="compress-individual-btn" onclick="downloadIndividual('compress')" disabled data-ko="개별 다운로드" data-en="Download individually">개별 다운로드</button>
+            <button class="btn-secondary" id="compress-individual-btn" onclick="downloadIndividual('compress')" data-ko="개별 다운로드" data-en="Download individually">개별 다운로드</button>
           </div>
 
           <div class="ad-inline">
@@ -388,14 +410,25 @@
             <div class="progress-label" id="bgremove-progress-label"></div>
           </div>
 
-          <div class="action-row">
-            <button class="btn-primary" id="bgremove-btn" onclick="removeBg()" disabled>
+          <!-- 배경 제거 시작 버튼 (처리 전에만 표시) -->
+          <div class="action-row" id="bgremove-action-convert">
+            <button class="btn-primary btn-convert" id="bgremove-btn" onclick="removeBg()" disabled>
               <span class="btn-icon">
                 <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="5.5"/><path d="M3 3l9 9" stroke-dasharray="2 1.5"/></svg>
               </span>
               <span data-ko="배경 제거 시작" data-en="Remove background">배경 제거 시작</span>
             </button>
-            <button class="btn-secondary" id="bgremove-individual-btn" onclick="downloadIndividual('bgremove')" disabled data-ko="PNG 다운로드" data-en="Download PNG">PNG 다운로드</button>
+          </div>
+
+          <!-- 다운로드 버튼 (처리 완료 후에만 표시) -->
+          <div class="action-row action-row-done" id="bgremove-action-download" style="display:none;">
+            <button class="btn-primary" id="bgremove-download-btn" onclick="downloadIndividual('bgremove')">
+              <span class="btn-icon">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="white" stroke-width="1.6" stroke-linecap="round"><path d="M7.5 1v9M4 6.5l3.5 3.5 3.5-3.5"/><path d="M1 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>
+              </span>
+              <span data-ko="PNG 다운로드" data-en="Download PNG">PNG 다운로드</span>
+            </button>
+            <button class="btn-secondary" onclick="resetBgremove()" data-ko="다시 하기" data-en="Start over">다시 하기</button>
           </div>
 
           <div class="ad-inline">
@@ -482,7 +515,7 @@
   <div class="toast" id="toast"></div>
 
   <!-- SCRIPTS -->
-  <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/heic-to@1.5.2/dist/iife/heic-to.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser/index.umd.js"></script>
   <script src="js/main.js"></script>
