@@ -4,16 +4,20 @@
 
 'use strict';
 
+/* ---------- Background removal (ESM import) ---------- */
+import { removeBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser/index.mjs';
+
 /* ---------- State ---------- */
 const state = {
   heic:     { files: [], results: [] },
   compress: { files: [], results: [] },
+  bgremove: { files: [], results: [] },
   lang: 'ko'
 };
 
 /* ---------- Tab switching ---------- */
 function switchTab(tab) {
-  ['heic', 'compress'].forEach(t => {
+  ['heic', 'compress', 'bgremove'].forEach(t => {
     document.getElementById('tab-' + t).classList.toggle('active', t === tab);
     document.getElementById('tab-' + t).setAttribute('aria-selected', t === tab);
     document.getElementById('body-' + t).classList.toggle('active', t === tab);
@@ -77,7 +81,13 @@ function processFiles(files, type) {
     return;
   }
 
-  state[type].files = filtered;
+  // bgremove는 단일 파일만 처리
+  const toProcess = type === 'bgremove' ? [filtered[0]] : filtered;
+  if (type === 'bgremove' && filtered.length > 1) {
+    showToast(state.lang === 'ko' ? '배경 제거는 한 번에 1개 파일만 처리합니다.' : 'Background removal processes one file at a time.');
+  }
+
+  state[type].files = toProcess;
   state[type].results = [];
   renderFileList(type);
   updateBatchIndicator(type);
@@ -131,6 +141,10 @@ function resetTool(type) {
   document.getElementById(type + '-progress').classList.remove('visible');
   updateButtons(type, false);
   updatePreviewPlaceholder(type);
+  if (type === 'bgremove') {
+    const notice = document.getElementById('bgremove-notice');
+    if (notice) notice.style.display = '';
+  }
 }
 
 /* ---------- Batch indicator ---------- */
@@ -154,99 +168,47 @@ function updateBatchIndicator(type) {
 /* ---------- Buttons ---------- */
 function updateButtons(type, done) {
   const hasFiles = state[type].files.length > 0;
-  const btnId    = type === 'heic' ? 'heic-convert-btn' : 'compress-btn';
-
-  // 변환/압축 시작 버튼
-  document.getElementById(btnId).disabled = !hasFiles;
-
-  // 완료 전: 변환 버튼 행 표시, 다운로드 행 숨김
-  // 완료 후: 변환 버튼 행 숨김, 다운로드 행 표시
-  document.getElementById(type + '-action-convert').style.display  = done ? 'none' : '';
-  document.getElementById(type + '-action-download').style.display = done ? ''     : 'none';
+  const btnMap = { heic: 'heic-convert-btn', compress: 'compress-btn', bgremove: 'bgremove-btn' };
+  document.getElementById(btnMap[type]).disabled = !hasFiles;
+  document.getElementById(type + '-individual-btn').disabled = !done;
 }
-
-/* ---------- Preview helpers ---------- */
-
-// Blob → base64 data URL (CSP/blob URL 문제 완전 회피)
-function blobToDataUrl(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload  = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error('FileReader failed'));
-    reader.readAsDataURL(blob);
-  });
-}
-
-// thumb 엘리먼트에 이미지를 안전하게 세팅
-function setThumbImage(thumbEl, dataUrl, placeholderClass) {
-  const img = new Image();
-  img.alt = 'preview';
-  img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
-  img.onload = () => {
-    thumbEl.innerHTML = '';
-    thumbEl.appendChild(img);
-    thumbEl.className = 'preview-thumb';
-  };
-  img.onerror = () => {
-    thumbEl.className = 'preview-thumb ' + placeholderClass;
-  };
-  img.src = dataUrl;
-}
-
-const ICON_BEFORE = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" fill="#818CF8" opacity="0.4"/><circle cx="12" cy="13" r="3" fill="#818CF8"/><path d="M4 22l8-6 5 4 4-3 7 5" stroke="#818CF8" stroke-width="1.5" stroke-linecap="round"/></svg>`;
-const ICON_AFTER  = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" fill="#34D399" opacity="0.4"/><circle cx="12" cy="13" r="3" fill="#34D399"/><path d="M4 22l8-6 5 4 4-3 7 5" stroke="#34D399" stroke-width="1.5" stroke-linecap="round"/></svg>`;
 
 /* ---------- Preview ---------- */
 function updatePreviewPlaceholder(type) {
-  const f          = state[type].files[0];
+  const f = state[type].files[0];
   const beforeSize = document.getElementById(type + '-before-size');
-  const afterSize  = document.getElementById(type + '-after-size');
-  const badge      = document.getElementById(type + '-save-badge');
-  const beforeThumb = document.getElementById(type + '-before-thumb');
-  const afterThumb  = document.getElementById(type + '-after-thumb');
-
-  // 변환 후 썸네일 항상 초기화
-  afterThumb.innerHTML = ICON_AFTER;
-  afterThumb.className = 'preview-thumb placeholder-after';
+  const badge = document.getElementById(type + '-save-badge');
+  const afterSize = document.getElementById(type + '-after-size');
 
   if (!f) {
     beforeSize.textContent = '—';
-    afterSize.textContent  = '—';
-    badge.style.display    = 'none';
-    beforeThumb.innerHTML  = ICON_BEFORE;
-    beforeThumb.className  = 'preview-thumb placeholder-before';
+    afterSize.textContent = '—';
+    if (badge) badge.style.display = 'none';
     return;
   }
 
   beforeSize.textContent = formatSize(f.size);
-  afterSize.textContent  = '—';
-  badge.style.display    = 'none';
+  afterSize.textContent = '—';
+  if (badge) badge.style.display = 'none';
 
   if (type === 'compress') {
-    document.getElementById('compress-before-fmt').textContent =
-      '.' + f.name.split('.').pop().toUpperCase();
+    const ext = f.name.split('.').pop().toUpperCase();
+    document.getElementById('compress-before-fmt').textContent = '.' + ext;
   }
 
-  if (type === 'heic') {
-    // 파일 선택 즉시 저품질로 미리보기 변환 (HeicTo는 동시 호출 충돌 없음)
-    beforeThumb.innerHTML = `<span style="font-size:11px;color:#94A3B8;padding:4px;">${state.lang === 'ko' ? '미리보기 생성 중...' : 'Loading preview...'}</span>`;
-    beforeThumb.className = 'preview-thumb placeholder-before';
-
-    HeicTo({ blob: f, type: 'image/jpeg', quality: 0.2 })
-      .then(previewBlob => blobToDataUrl(previewBlob))
-      .then(dataUrl => {
-        setThumbImage(beforeThumb, dataUrl, 'placeholder-before');
-      })
-      .catch(() => {
-        beforeThumb.innerHTML = ICON_BEFORE;
-        beforeThumb.className = 'preview-thumb placeholder-before';
-      });
-  } else {
-    // PNG/JPG/WEBP는 FileReader로 직접 읽기
-    blobToDataUrl(f).then(dataUrl => {
-      setThumbImage(beforeThumb, dataUrl, 'placeholder-before');
-    });
+  if (type === 'bgremove') {
+    const ext = f.name.split('.').pop().toUpperCase();
+    document.getElementById('bgremove-before-fmt').textContent = '.' + ext;
   }
+
+  // Show actual image thumbnail
+  const reader = new FileReader();
+  reader.onload = e => {
+    const thumb = document.getElementById(type + '-before-thumb');
+    thumb.innerHTML = `<img src="${e.target.result}" alt="preview">`;
+    thumb.className = 'preview-thumb';
+  };
+  reader.readAsDataURL(f);
 }
 
 function updateAfterPreview(type, resultBlob, savedPct) {
@@ -254,19 +216,15 @@ function updateAfterPreview(type, resultBlob, savedPct) {
   const afterSize  = document.getElementById(type + '-after-size');
   const badge      = document.getElementById(type + '-save-badge');
 
+  const url = URL.createObjectURL(resultBlob);
+  afterThumb.innerHTML = `<img src="${url}" alt="result preview">`;
+  afterThumb.className = 'preview-thumb';
   afterSize.textContent = formatSize(resultBlob.size);
 
   if (savedPct > 0) {
-    badge.textContent    = `-${savedPct}%`;
-    badge.style.display  = 'inline-block';
-  } else {
-    badge.style.display  = 'none';
+    badge.textContent = `-${savedPct}%`;
+    badge.style.display = 'inline-block';
   }
-
-  // Blob → data URL 변환 후 썸네일 표시
-  blobToDataUrl(resultBlob).then(dataUrl => {
-    setThumbImage(afterThumb, dataUrl, 'placeholder-after');
-  });
 }
 
 /* ---------- HEIC Conversion ---------- */
@@ -287,11 +245,13 @@ async function convertHEIC() {
     setFileStatus('heic', i, state.lang === 'ko' ? '변환 중...' : 'converting...', '');
 
     try {
-      const blob = await HeicTo({
+      const resultBlob = await heic2any({
         blob: f,
-        type: 'image/jpeg',
+        toType: 'image/jpeg',
         quality: quality
       });
+
+      const blob = Array.isArray(resultBlob) ? resultBlob[0] : resultBlob;
       const outName = f.name.replace(/\.(heic|heif)$/i, '.jpg');
       state.heic.results.push({ name: outName, blob });
 
@@ -310,11 +270,82 @@ async function convertHEIC() {
   }
 
   btn.disabled = false;
-  btn.querySelector('span:not(.btn-icon)').textContent =
-    state.lang === 'ko' ? '변환 시작' : 'Convert now';
+  const zipLabel = state.lang === 'ko' ? 'ZIP으로 모두 다운로드' : 'Download all as ZIP';
+  btn.querySelector('span:not(.btn-icon)').textContent = zipLabel;
+  btn.onclick = () => downloadZip('heic');
 
   updateButtons('heic', true);
   showToast(state.lang === 'ko' ? `${state.heic.results.length}개 파일 변환 완료!` : `${state.heic.results.length} file(s) converted!`);
+}
+
+/* ---------- Background Removal ---------- */
+async function removeBg() {
+  const files = state.bgremove.files;
+  if (!files.length) return;
+
+  const f = files[0];
+  const btn = document.getElementById('bgremove-btn');
+  btn.disabled = true;
+  btn.querySelector('span:not(.btn-icon)').textContent =
+    state.lang === 'ko' ? 'AI 처리 중...' : 'Processing...';
+
+  const progressLabel = document.getElementById('bgremove-progress-label');
+  const progressFill  = document.getElementById('bgremove-progress-fill');
+  document.getElementById('bgremove-progress').classList.add('visible');
+  progressFill.style.width = '0%';
+  progressLabel.textContent = state.lang === 'ko' ? '모델 준비 중...' : 'Preparing model...';
+
+  state.bgremove.results = [];
+
+  try {
+    let lastProgress = 0;
+
+    const blob = await removeBackground(f, {
+      progress: (key, current, total) => {
+        if (total > 0) {
+          const pct = Math.round((current / total) * 100);
+          if (pct !== lastProgress) {
+            lastProgress = pct;
+            progressFill.style.width = pct + '%';
+            if (key === 'fetch:model') {
+              progressLabel.textContent = state.lang === 'ko'
+                ? `모델 다운로드 중... ${pct}%`
+                : `Downloading model... ${pct}%`;
+            } else {
+              progressLabel.textContent = state.lang === 'ko'
+                ? `배경 제거 중... ${pct}%`
+                : `Removing background... ${pct}%`;
+            }
+          }
+        }
+      }
+    });
+
+    const outName = f.name.replace(/\.[^.]+$/, '.png');
+    state.bgremove.results.push({ name: outName, blob });
+
+    // 결과 미리보기
+    const afterThumb = document.getElementById('bgremove-after-thumb');
+    const url = URL.createObjectURL(blob);
+    afterThumb.innerHTML = `<img src="${url}" alt="result preview" style="background:repeating-conic-gradient(#d1d5db 0% 25%, #fff 0% 50%) 0 0 / 12px 12px">`;
+    afterThumb.className = 'preview-thumb';
+    document.getElementById('bgremove-after-size').textContent = formatSize(blob.size);
+
+    progressFill.style.width = '100%';
+    progressLabel.textContent = state.lang === 'ko' ? '완료!' : 'Done!';
+
+    updateButtons('bgremove', true);
+    showToast(state.lang === 'ko' ? '배경 제거 완료!' : 'Background removed!');
+
+  } catch (err) {
+    console.error('BG remove error:', err);
+    showToast(state.lang === 'ko' ? '배경 제거 실패. 다시 시도해 주세요.' : 'Failed. Please try again.');
+    progressLabel.textContent = state.lang === 'ko' ? '처리 실패' : 'Failed';
+  }
+
+  btn.disabled = false;
+  btn.querySelector('span:not(.btn-icon)').textContent =
+    state.lang === 'ko' ? '배경 제거 시작' : 'Remove background';
 }
 
 /* ---------- Image Compression ---------- */
@@ -362,8 +393,9 @@ async function compressImages() {
   }
 
   btn.disabled = false;
-  btn.querySelector('span:not(.btn-icon)').textContent =
-    state.lang === 'ko' ? '압축 시작' : 'Compress now';
+  const zipLabel = state.lang === 'ko' ? 'ZIP으로 모두 다운로드' : 'Download all as ZIP';
+  btn.querySelector('span:not(.btn-icon)').textContent = zipLabel;
+  btn.onclick = () => downloadZip('compress');
 
   updateButtons('compress', true);
   showToast(state.lang === 'ko' ? `${state.compress.results.length}개 파일 압축 완료!` : `${state.compress.results.length} file(s) compressed!`);
@@ -412,6 +444,12 @@ async function downloadZip(type) {
 
 function downloadIndividual(type) {
   const results = state[type].results;
+  if (!results.length) return;
+  // bgremove는 항상 단일 파일
+  if (type === 'bgremove') {
+    downloadBlob(results[0].blob, results[0].name);
+    return;
+  }
   results.forEach((r, i) => {
     setTimeout(() => downloadBlob(r.blob, r.name), i * 200);
   });
@@ -526,3 +564,20 @@ document.addEventListener('DOMContentLoaded', () => {
   updateSliderTrack('heic-quality', 90);
   updateSliderTrack('compress-quality', 80);
 });
+
+/* ---------- Expose to global (required for ESM module) ---------- */
+window.switchTab         = switchTab;
+window.handleDragOver    = handleDragOver;
+window.handleDragLeave   = handleDragLeave;
+window.handleDrop        = handleDrop;
+window.handleFileSelect  = handleFileSelect;
+window.removeFile        = removeFile;
+window.toggleSwitch      = toggleSwitch;
+window.updateSlider      = updateSlider;
+window.convertHEIC       = convertHEIC;
+window.compressImages    = compressImages;
+window.removeBg          = removeBg;
+window.downloadZip       = downloadZip;
+window.downloadIndividual = downloadIndividual;
+window.toggleLang        = toggleLang;
+window.toggleMobileMenu  = toggleMobileMenu;

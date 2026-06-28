@@ -745,20 +745,6 @@ a:hover { text-decoration: underline; }
 .btn-secondary:hover { background: var(--surface-2); color: var(--text); }
 .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* 변환/압축 시작 버튼 — 조금 더 두드러지게 */
-.btn-convert {
-  font-size: 15px;
-  padding: 13px 20px;
-  letter-spacing: 0.01em;
-}
-
-/* 다운로드 행 — 살짝 구분감 */
-.action-row-done {
-  margin-top: 0;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-}
-
 /* =============================================
    PROGRESS BAR
    ============================================= */
@@ -1104,4 +1090,42 @@ a:hover { text-decoration: underline; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* =============================================
+   BACKGROUND REMOVAL — 추가 스타일
+   ============================================= */
+
+/* 안내 배너 */
+.bgremove-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 13px;
+  background: var(--brand-light);
+  border: 0.5px solid #BFDBFE;
+  border-radius: 8px;
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: #1E40AF;
+  line-height: 1.5;
+}
+
+.bgremove-notice svg { flex-shrink: 0; margin-top: 1px; }
+
+/* 투명 배경 체커보드 (결과 프리뷰) */
+.bgremove-checker {
+  background: repeating-conic-gradient(#d1d5db 0% 25%, #ffffff 0% 50%)
+              0 0 / 12px 12px !important;
+}
+
+.bgremove-checker img {
+  background: repeating-conic-gradient(#d1d5db 0% 25%, #ffffff 0% 50%)
+              0 0 / 12px 12px;
+}
+
+/* 탭이 3개일 때 글자 크기 살짝 조정 (모바일) */
+@media (max-width: 480px) {
+  .tab { font-size: 11.5px; gap: 5px; padding: 11px 0; }
+  .tab svg { width: 13px; height: 13px; }
 }
