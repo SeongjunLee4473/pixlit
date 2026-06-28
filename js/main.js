@@ -159,61 +159,90 @@ function updateButtons(type, done) {
   document.getElementById(type + '-individual-btn').disabled = !done;
 }
 
+/* ---------- Preview helpers ---------- */
+
+// Blob → base64 data URL (CSP/blob URL 문제 완전 회피)
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('FileReader failed'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+// thumb 엘리먼트에 이미지를 안전하게 세팅
+function setThumbImage(thumbEl, dataUrl, placeholderClass) {
+  const img = new Image();
+  img.alt = 'preview';
+  img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+  img.onload = () => {
+    thumbEl.innerHTML = '';
+    thumbEl.appendChild(img);
+    thumbEl.className = 'preview-thumb';
+  };
+  img.onerror = () => {
+    thumbEl.className = 'preview-thumb ' + placeholderClass;
+  };
+  img.src = dataUrl;
+}
+
+const ICON_BEFORE = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" fill="#818CF8" opacity="0.4"/><circle cx="12" cy="13" r="3" fill="#818CF8"/><path d="M4 22l8-6 5 4 4-3 7 5" stroke="#818CF8" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+const ICON_AFTER  = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" fill="#34D399" opacity="0.4"/><circle cx="12" cy="13" r="3" fill="#34D399"/><path d="M4 22l8-6 5 4 4-3 7 5" stroke="#34D399" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+
 /* ---------- Preview ---------- */
 function updatePreviewPlaceholder(type) {
-  const f = state[type].files[0];
+  const f          = state[type].files[0];
   const beforeSize = document.getElementById(type + '-before-size');
-  const badge = document.getElementById(type + '-save-badge');
-  const afterSize = document.getElementById(type + '-after-size');
+  const afterSize  = document.getElementById(type + '-after-size');
+  const badge      = document.getElementById(type + '-save-badge');
+  const beforeThumb = document.getElementById(type + '-before-thumb');
+  const afterThumb  = document.getElementById(type + '-after-thumb');
 
-  // 변환 후 썸네일 초기화
-  const afterThumb = document.getElementById(type + '-after-thumb');
-  afterThumb.innerHTML = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" fill="#34D399" opacity="0.4"/><circle cx="12" cy="13" r="3" fill="#34D399"/><path d="M4 22l8-6 5 4 4-3 7 5" stroke="#34D399" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+  // 변환 후 썸네일 항상 초기화
+  afterThumb.innerHTML = ICON_AFTER;
   afterThumb.className = 'preview-thumb placeholder-after';
 
   if (!f) {
     beforeSize.textContent = '—';
-    afterSize.textContent = '—';
-    badge.style.display = 'none';
-    // 변환 전 썸네일도 초기화
-    const beforeThumb = document.getElementById(type + '-before-thumb');
-    beforeThumb.innerHTML = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" fill="#818CF8" opacity="0.4"/><circle cx="12" cy="13" r="3" fill="#818CF8"/><path d="M4 22l8-6 5 4 4-3 7 5" stroke="#818CF8" stroke-width="1.5" stroke-linecap="round"/></svg>`;
-    beforeThumb.className = 'preview-thumb placeholder-before';
+    afterSize.textContent  = '—';
+    badge.style.display    = 'none';
+    beforeThumb.innerHTML  = ICON_BEFORE;
+    beforeThumb.className  = 'preview-thumb placeholder-before';
     return;
   }
 
   beforeSize.textContent = formatSize(f.size);
-  afterSize.textContent = '—';
-  badge.style.display = 'none';
+  afterSize.textContent  = '—';
+  badge.style.display    = 'none';
 
   if (type === 'compress') {
-    const ext = f.name.split('.').pop().toUpperCase();
-    document.getElementById('compress-before-fmt').textContent = '.' + ext;
+    document.getElementById('compress-before-fmt').textContent =
+      '.' + f.name.split('.').pop().toUpperCase();
   }
 
-  const thumb = document.getElementById(type + '-before-thumb');
-
   if (type === 'heic') {
-    // HEIC는 브라우저가 직접 렌더링하지 못하므로 heic2any로 썸네일 변환 후 표시
-    thumb.innerHTML = `<span style="font-size:12px;color:#94A3B8">${state.lang === 'ko' ? '미리보기 생성 중...' : 'Generating preview...'}</span>`;
-    thumb.className = 'preview-thumb placeholder-before';
+    // HEIC는 브라우저 직접 렌더링 불가 → heic2any로 저품질 JPEG 변환 후 표시
+    beforeThumb.innerHTML = `<span style="font-size:11px;color:#94A3B8;padding:4px;">${state.lang === 'ko' ? '미리보기 생성 중...' : 'Loading preview...'}</span>`;
+    beforeThumb.className = 'preview-thumb placeholder-before';
+
     heic2any({ blob: f, toType: 'image/jpeg', quality: 0.3 })
       .then(result => {
         const previewBlob = Array.isArray(result) ? result[0] : result;
-        const url = URL.createObjectURL(previewBlob);
-        thumb.innerHTML = `<img src="${url}" alt="preview">`;
-        thumb.className = 'preview-thumb';
+        return blobToDataUrl(previewBlob);
+      })
+      .then(dataUrl => {
+        setThumbImage(beforeThumb, dataUrl, 'placeholder-before');
       })
       .catch(() => {
-        // 미리보기 실패 시 아이콘 fallback
-        thumb.innerHTML = `<svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" fill="#818CF8" opacity="0.4"/><circle cx="12" cy="13" r="3" fill="#818CF8"/><path d="M4 22l8-6 5 4 4-3 7 5" stroke="#818CF8" stroke-width="1.5" stroke-linecap="round"/></svg>`;
-        thumb.className = 'preview-thumb placeholder-before';
+        beforeThumb.innerHTML = ICON_BEFORE;
+        beforeThumb.className = 'preview-thumb placeholder-before';
       });
   } else {
-    // PNG/JPG/WEBP는 브라우저가 직접 렌더링 가능
-    const url = URL.createObjectURL(f);
-    thumb.innerHTML = `<img src="${url}" alt="preview">`;
-    thumb.className = 'preview-thumb';
+    // PNG/JPG/WEBP는 FileReader로 직접 읽기
+    blobToDataUrl(f).then(dataUrl => {
+      setThumbImage(beforeThumb, dataUrl, 'placeholder-before');
+    });
   }
 }
 
@@ -222,34 +251,19 @@ function updateAfterPreview(type, resultBlob, savedPct) {
   const afterSize  = document.getElementById(type + '-after-size');
   const badge      = document.getElementById(type + '-save-badge');
 
-  // 기존 blob URL 해제 (메모리 누수 방지)
-  const oldImg = afterThumb.querySelector('img');
-  if (oldImg && oldImg.src.startsWith('blob:')) {
-    URL.revokeObjectURL(oldImg.src);
-  }
-
-  const url = URL.createObjectURL(resultBlob);
-  const img = new Image();
-  img.alt = 'result preview';
-  img.onload = () => {
-    afterThumb.innerHTML = '';
-    afterThumb.appendChild(img);
-    afterThumb.className = 'preview-thumb';
-  };
-  img.onerror = () => {
-    // 이미지 로드 실패 시 fallback
-    afterThumb.className = 'preview-thumb placeholder-after';
-  };
-  img.src = url;
-
   afterSize.textContent = formatSize(resultBlob.size);
 
   if (savedPct > 0) {
-    badge.textContent = `-${savedPct}%`;
-    badge.style.display = 'inline-block';
+    badge.textContent    = `-${savedPct}%`;
+    badge.style.display  = 'inline-block';
   } else {
-    badge.style.display = 'none';
+    badge.style.display  = 'none';
   }
+
+  // Blob → data URL 변환 후 썸네일 표시
+  blobToDataUrl(resultBlob).then(dataUrl => {
+    setThumbImage(afterThumb, dataUrl, 'placeholder-after');
+  });
 }
 
 /* ---------- HEIC Conversion ---------- */
