@@ -1,0 +1,13 @@
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net https://pagead2.googlesyndication.com https://www.googletagservices.com; object-src 'none';"
+        }
+      ]
+    }
+  ]
+}
